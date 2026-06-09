@@ -1,0 +1,8 @@
+{
+  "android": {
+    "package": "com.anonymous.seneyiriwa"
+  },
+  "ios": {
+    "bundleIdentifier": "com.anonymous.seneyiriwa"
+  }
+}
