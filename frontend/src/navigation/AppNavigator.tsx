@@ -17,12 +17,10 @@
  */
 
 import React, { useEffect } from 'react';
-import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { StatusBar, Platform, Linking } from 'react-native';
-import { navigationRef, isReadyRef } from './NavigationService';
 
 // Import des écrans d'authentification
 import SplashScreen from './screens/SplashScreen';
@@ -35,12 +33,14 @@ import OnboardingScreen from './screens/auth/OnboardingScreen';
 // Import des écrans principaux
 import MainNavigator from './MainNavigator';
 
+// Import du navigateur admin
+import AdminNavigator from './AdminNavigator';
+
 // Import des types
 import { RootStackParamList, AuthStackParamList, MainStackParamList } from './types';
 
 // Import des hooks et services
 import { useAuth } from '../hooks/useAuth';
-import { navigationTheme } from '../config/theme.config';
 import colors from '../styles/colors';
 
 // Création des stack navigators
@@ -54,10 +54,7 @@ const AuthStack = createStackNavigator<AuthStackParamList>();
 /**
  * Props du composant AppNavigator
  */
-export interface AppNavigatorProps {
-  /** Navigation ref pour les services */
-  setNavigationRef?: (ref: NavigationContainerRef<any>) => void;
-}
+export interface AppNavigatorProps {}
 
 /**
  * État de l'application pour la navigation
@@ -143,63 +140,13 @@ const MainStackNavigator = () => {
  * // Avec référence pour navigation programmatique
  * <AppNavigator setNavigationRef={(ref) => navigationRef = ref} />
  */
-const AppNavigator: React.FC<AppNavigatorProps> = ({ setNavigationRef }) => {
+const AppNavigator: React.FC<AppNavigatorProps> = () => {
   const { t } = useTranslation();
   const { isAuthenticated, isLoading, user } = useAuth();
   const dispatch = useDispatch();
   
   // État local pour le chargement initial
-  const [isReady, setIsReady] = React.useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = React.useState(false);
-  
-  // Référence pour le service de navigation
-  const routeNameRef = React.useRef<string | null>(null);
-
-  /**
-   * Gestion de la navigation après le chargement
-   */
-  const onNavigationReady = () => {
-    setIsReady(true);
-    if (isReadyRef) {
-      isReadyRef.current = true;
-    }
-  };
-
-  /**
-   * Configuration du thème de navigation
-   */
-  const getNavigationTheme = () => {
-    return navigationTheme;
-  };
-
-  /**
-   * Gestion du changement d'écran
-   */
-  const onStateChange = async () => {
-    const previousRouteName = routeNameRef.current;
-    const currentRouteName = navigationRef.current?.getCurrentRoute()?.name;
-    
-    if (previousRouteName !== currentRouteName) {
-      // Analytics - Envoyer le nom de l'écran à votre service d'analytics
-      if (__DEV__) {
-        console.log(`[Navigation] Écran: ${currentRouteName}`);
-      }
-    }
-    
-    routeNameRef.current = currentRouteName ?? null;
-  };
-
-  /**
-   * Configuration de la ref de navigation
-   */
-  const handleSetNavigationRef = (ref: NavigationContainerRef<any> | null) => {
-    if (ref) {
-      navigationRef.current = ref;
-      if (setNavigationRef) {
-        setNavigationRef(ref);
-      }
-    }
-  };
 
   /**
    * Détermination de l'écran initial
@@ -212,6 +159,10 @@ const AppNavigator: React.FC<AppNavigatorProps> = ({ setNavigationRef }) => {
     
     // Navigation selon l'état d'authentification
     if (isAuthenticated) {
+      // Si l'utilisateur est administrateur, aller vers Admin
+      if (user?.role === 'administrateur') {
+        return 'Admin';
+      }
       return 'App';
     }
     
@@ -246,49 +197,52 @@ const AppNavigator: React.FC<AppNavigatorProps> = ({ setNavigationRef }) => {
     }
   }, []);
 
-  // Écran de chargement pendant l'initialisation
-  if (isLoading || !isReady) {
+  // Attendre uniquement le chargement de la session auth.
+  // isReady est défini dans onReady du NavigationContainer : ne pas l'utiliser
+  // ici, sinon le conteneur ne monte jamais (deadlock sur le splash).
+  if (isLoading) {
     return <SplashScreen />;
   }
 
   return (
-    <NavigationContainer
-      ref={handleSetNavigationRef}
-      theme={getNavigationTheme()}
-      onReady={onNavigationReady}
-      onStateChange={onStateChange}
-      linking={linking}
+    <RootStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        gestureEnabled: true,
+        gestureDirection: 'horizontal',
+      }}
+      initialRouteName={getInitialRouteName()}
     >
-      <RootStack.Navigator
-        screenOptions={{
-          headerShown: false,
-          gestureEnabled: true,
-          gestureDirection: 'horizontal',
+      {/* Écran Onboarding (premier lancement) */}
+      <RootStack.Screen 
+        name="Onboarding" 
+        component={OnboardingScreen}
+        options={{
+          animationTypeForReplace: 'pop',
         }}
-        initialRouteName={getInitialRouteName()}
-      >
-        {/* Écran Onboarding (premier lancement) */}
-        <RootStack.Screen 
-          name="Onboarding" 
-          component={OnboardingScreen}
-          options={{
-            animationTypeForReplace: 'pop',
-          }}
-        />
-        
-        {/* Stack d'authentification */}
-        <RootStack.Screen 
-          name="Auth" 
-          component={AuthStackNavigator}
-        />
-        
-        {/* Stack principal (authentifié) */}
-        <RootStack.Screen 
-          name="App" 
-          component={MainStackNavigator}
-        />
-      </RootStack.Navigator>
-    </NavigationContainer>
+      />
+      
+      {/* Stack d'authentification */}
+      <RootStack.Screen 
+        name="Auth" 
+        component={AuthStackNavigator}
+      />
+      
+      {/* Stack principal (authentifié) */}
+      <RootStack.Screen 
+        name="App" 
+        component={MainStackNavigator}
+      />
+      
+      {/* Stack administrateur */}
+      <RootStack.Screen 
+        name="Admin" 
+        component={AdminNavigator}
+        options={{
+          headerShown: false,
+        }}
+      />
+    </RootStack.Navigator>
   );
 };
 
@@ -300,7 +254,7 @@ const AppNavigator: React.FC<AppNavigatorProps> = ({ setNavigationRef }) => {
  * Configuration du deep linking
  * Permet d'ouvrir l'application depuis des URLs
  */
-const linking = {
+export const linking = {
   prefixes: [
     'seneyiriwa://',
     'https://seneyiriwa.com',

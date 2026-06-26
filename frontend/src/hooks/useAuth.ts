@@ -31,7 +31,7 @@ import type {
   AuthResponse,
 } from '../api/endpoints/auth';
 import { showErrorMessage, showSuccessMessage } from '../utils/notifications';
-import { validateEmail, validatePassword, validatePhoneMali } from '../utils/validators';
+import { validateEmail, validatePassword, validatePhoneMali, maskPhoneNumber, normalizePhoneMali } from '../utils/validators';
 
 // ============================================
 // TYPES ET INTERFACES
@@ -495,7 +495,7 @@ export const useAuth = () => {
         nom: data.nom.trim(),
         prenom: data.prenom.trim(),
         email: data.email.toLowerCase().trim(),
-        telephone: data.telephone.trim(),
+        telephone: normalizePhoneMali(data.telephone),
         password: data.password,
         confirmPassword: data.confirmPassword,
         acceptTerms: data.acceptTerms,
@@ -844,6 +844,46 @@ export const useAuth = () => {
   }, [state.isAuthenticated, state.token, t, clearPersistedAuth, updateState, updateRedux, handleError]);
 
   // ============================================
+  // MODE INVITÉ (DÉVELOPPEMENT / DÉMO)
+  // ============================================
+
+  /**
+   * Connexion en mode invité pour explorer l'application sans compte
+   */
+  const loginAsGuest = useCallback(async (): Promise<AuthResult> => {
+    const guestUser: User = {
+      id: 'guest',
+      nom: 'Visiteur',
+      prenom: 'Invité',
+      email: 'invite@seneyiriwa.local',
+      telephone: '77000000',
+      role: 'agriculteur',
+      isEmailVerified: false,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    updateState({
+      user: guestUser,
+      token: 'guest-token',
+      refreshToken: null,
+      isAuthenticated: true,
+      role: 'agriculteur',
+      isLoading: false,
+      error: null,
+    });
+
+    updateRedux(guestUser, 'guest-token');
+
+    if (__DEV__) {
+      console.log('[useAuth] Mode invité activé');
+    }
+
+    return { success: true, data: { user: guestUser } };
+  }, [updateState, updateRedux]);
+
+  // ============================================
   // FONCTIONS UTILITAIRES
   // ============================================
 
@@ -938,6 +978,7 @@ export const useAuth = () => {
     login,
     register,
     logout,
+    loginAsGuest,
     
     // Mot de passe
     forgotPassword,

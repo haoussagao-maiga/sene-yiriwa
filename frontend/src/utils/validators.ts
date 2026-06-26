@@ -13,31 +13,33 @@ export const validatePassword = (password: string): boolean => {
   return re.test(password);
 };
 
+const extractMaliPhoneDigits = (phone: string): string => {
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('223') && digits.length > 8) {
+    digits = digits.slice(3);
+  }
+  return digits.slice(0, 8);
+};
+
 export const validatePhoneMali = (phone: string): boolean => {
   if (!phone) return false;
-  const digits = phone.replace(/\D/g, '');
-  // Mali local numbers are 8 digits. With country code (+223) it's 11 digits starting with 223
-  if (digits.length === 8) return true;
-  if (digits.length === 11 && digits.startsWith('223')) return true;
-  return false;
+  return extractMaliPhoneDigits(phone).length === 8;
 };
 
 export const maskPhoneNumber = (phone: string): string => {
-  if (!phone) return '';
-  const digits = phone.replace(/\D/g, '');
-  let core = digits;
-  if (digits.length === 11 && digits.startsWith('223')) {
-    core = digits.slice(3);
-  }
+  const digits = extractMaliPhoneDigits(phone);
+  if (!digits) return '';
 
-  // Format core 8 digits as 'XX XX XXXX'
-  if (core.length === 8) {
-    return `+223 ${core.slice(0,2)} ${core.slice(2,4)} ${core.slice(4)}`;
-  }
+  const parts: string[] = [];
+  if (digits.length > 0) parts.push(digits.slice(0, 2));
+  if (digits.length > 2) parts.push(digits.slice(2, 4));
+  if (digits.length > 4) parts.push(digits.slice(4, 6));
+  if (digits.length > 6) parts.push(digits.slice(6, 8));
 
-  // Fallback: group by 3
-  return digits.replace(/(\d{1,3})(?=(\d{3})+$)/g, '$1 ');
+  return parts.join(' ');
 };
+
+export const normalizePhoneMali = (phone: string): string => extractMaliPhoneDigits(phone);
 
 export const maskSuperficie = (value: number | string | undefined | null): string => {
   if (value === undefined || value === null || value === '') return '';
@@ -51,5 +53,6 @@ export default {
   validatePassword,
   validatePhoneMali,
   maskPhoneNumber,
+  normalizePhoneMali,
   maskSuperficie,
 };

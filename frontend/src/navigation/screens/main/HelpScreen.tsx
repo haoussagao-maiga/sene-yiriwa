@@ -169,7 +169,7 @@ const USEFUL_LINKS: UsefulLink[] = [
   },
   {
     id: '3',
-    title: 'Blog',
+    title: 'Journal',
     description: 'Actualités et conseils agricoles',
     icon: 'blog',
     url: 'https://seneyiriwa.com/blog',

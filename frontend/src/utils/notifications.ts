@@ -21,6 +21,7 @@ import { Platform, Alert, Vibration } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { showMessage, hideMessage } from 'react-native-flash-message';
 import  colors  from '../styles/colors';
+import i18n from '../i18n';
 
 // ============================================
 // TYPES ET INTERFACES
@@ -324,7 +325,7 @@ export const showSimpleAlert = (title: string, message: string, onOk?: () => voi
     message,
     [
       {
-        text: 'OK',
+        text: i18n.t('ok'),
         onPress: onOk,
       },
     ],

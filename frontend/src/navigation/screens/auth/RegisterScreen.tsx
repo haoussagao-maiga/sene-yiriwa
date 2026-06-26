@@ -36,45 +36,21 @@ import {
   Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { CommonActions } from '@react-navigation/native';
 import { useAuth } from '../../../hooks/useAuth';
+import { navigationRef } from '../../../navigation/NavigationService';
 import CustomInput from '../../../components/common/CustomInput';
 import CustomButton from '../../../components/common/CustomButton';
 import colors from '../../../styles/colors';
 import { typography } from '../../../styles/typography';
 import { spacing } from '../../../styles/spacing';
-// Local validators fallback (copiés depuis `src/utils/validators.ts`)
-const validateEmail = (email: string): boolean => {
-  if (!email) return false;
-  const re = /^[\w-.]+@[\w-]+\.[A-Za-z]{2,}$/;
-  return re.test(email.trim());
-};
-
-const validatePassword = (password: string): boolean => {
-  if (!password) return false;
-  const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-  return re.test(password);
-};
-
-const validatePhoneMali = (phone: string): boolean => {
-  if (!phone) return false;
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length === 8) return true;
-  if (digits.length === 11 && digits.startsWith('223')) return true;
-  return false;
-};
-
-const maskPhoneNumber = (phone: string): string => {
-  if (!phone) return '';
-  const digits = phone.replace(/\D/g, '');
-  let core = digits;
-  if (digits.length === 11 && digits.startsWith('223')) {
-    core = digits.slice(3);
-  }
-  if (core.length === 8) {
-    return `+223 ${core.slice(0,2)} ${core.slice(2,4)} ${core.slice(4)}`;
-  }
-  return digits.replace(/(\d{1,3})(?=(\d{3})+$)/g, '$1 ');
-};
+import {
+  validateEmail,
+  validatePassword,
+  validatePhoneMali,
+  maskPhoneNumber,
+  normalizePhoneMali,
+} from '../../../utils/validators';
 
 // ============================================
 // TYPES ET INTERFACES
@@ -169,7 +145,7 @@ interface RegisterScreenProps {
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
-  const { register, isLoading } = useAuth();
+  const { register, loginAsGuest, isLoading } = useAuth();
   
   // État du formulaire
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -285,7 +261,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     // Mot de passe
     if (!formData.password) {
       newErrors.password = t('password_required');
-    } else if (formData.password.length < 6) {
+    } else if (!validatePassword(formData.password)) {
       newErrors.password = t('password_min_length');
     }
     
@@ -333,7 +309,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       nom: formData.nom.trim(),
       prenom: formData.prenom.trim(),
       email: formData.email.trim().toLowerCase(),
-      telephone: formData.telephone.replace(/\s/g, ''),
+      telephone: normalizePhoneMali(formData.telephone),
       password: formData.password,
       confirmPassword: formData.confirmPassword,
       acceptTerms,
@@ -346,6 +322,33 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       Alert.alert(t('error'), result.error || t('register_error'));
     }
   }, [formData, acceptTerms, register, validateForm, t]);
+
+  /**
+   * Mode invité : accéder à l'application sans inscription
+   */
+  const handleSkip = useCallback(async () => {
+    const result = await loginAsGuest();
+    if (!result.success) {
+      return;
+    }
+
+    if (navigationRef.isReady()) {
+      navigationRef.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'App' }],
+        })
+      );
+      return;
+    }
+
+    navigation.getParent()?.getParent()?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'App' }],
+      })
+    );
+  }, [loginAsGuest, navigation]);
 
   /**
    * Navigation vers l'écran de connexion
@@ -561,11 +564,12 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
             <CustomInput
               ref={(ref) => { inputsRef.current.telephone = ref; }}
               label={t('phone')}
-              placeholder="77 12 34 56 7"
+              placeholder="77 12 34 56"
               value={formData.telephone}
               onChangeText={handlePhoneChange}
               leftIcon="phone"
               keyboardType="phone-pad"
+              maxLength={11}
               returnKeyType="next"
               onSubmitEditing={() => inputsRef.current.password?.focus()}
               status={errors.telephone ? 'error' : 'default'}
@@ -640,6 +644,17 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               onPress={handleRegister}
               disabled={isLoading}
             />
+
+            <CustomButton
+              title={t('skip')}
+              variant="outline"
+              size="large"
+              fullWidth
+              onPress={handleSkip}
+              disabled={isLoading}
+              containerStyle={styles.skipButton}
+            />
+            <Text style={styles.skipHint}>{t('skip_auth_hint')}</Text>
 
             {/* Lien vers connexion */}
             <TouchableOpacity
@@ -837,6 +852,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.lg,
     paddingVertical: spacing.sm,
+  },
+  skipButton: {
+    marginTop: spacing.md,
+  },
+  skipHint: {
+    fontSize: typography.fontSize.xs,
+    color: colors.gray[500],
+    textAlign: 'center',
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
   },
   loginLinkText: {
     fontSize: typography.fontSize.sm,

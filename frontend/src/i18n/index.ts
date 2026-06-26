@@ -113,14 +113,12 @@ export const LANGUAGE_MAP: Record<string, SupportedLanguage> = {
  */
 export const getSystemLanguage = (): SupportedLanguage => {
   try {
-    const systemLocale = Localization.locale;
-    const languageCode = systemLocale.split('-')[0].toLowerCase();
-    
-    // Vérifier si la langue est supportée
+    const locales = Localization.getLocales?.() ?? [];
+    const languageCode = (locales[0]?.languageCode ?? DEFAULT_LANGUAGE).toLowerCase();
+
     if (languageCode === 'fr') return 'fr';
     if (languageCode === 'bm') return 'bm';
-    
-    // Par défaut, retourner le français
+
     return DEFAULT_LANGUAGE;
   } catch (error) {
     console.error('[i18n] Erreur détection langue système:', error);
@@ -170,22 +168,13 @@ export const loadLanguagePreference = async (): Promise<SupportedLanguage | null
  */
 export const initializeLanguage = async (): Promise<SupportedLanguage> => {
   try {
-    // 1. Vérifier la langue sauvegardée
     const savedLanguage = await loadLanguagePreference();
-    if (savedLanguage) {
-      if (__DEV__) console.log(`[i18n] Utilisation langue sauvegardée: ${savedLanguage}`);
-      return savedLanguage;
+    if (savedLanguage === 'bm') {
+      if (__DEV__) console.log('[i18n] Utilisation langue sauvegardée: bm');
+      return 'bm';
     }
-    
-    // 2. Vérifier la langue système
-    const systemLanguage = getSystemLanguage();
-    if (systemLanguage) {
-      if (__DEV__) console.log(`[i18n] Utilisation langue système: ${systemLanguage}`);
-      return systemLanguage;
-    }
-    
-    // 3. Utiliser la langue par défaut
-    if (__DEV__) console.log(`[i18n] Utilisation langue par défaut: ${DEFAULT_LANGUAGE}`);
+
+    if (__DEV__) console.log(`[i18n] Utilisation du français par défaut`);
     return DEFAULT_LANGUAGE;
   } catch (error) {
     console.error('[i18n] Erreur initialisation langue:', error);

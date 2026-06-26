@@ -33,7 +33,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // Import des configurations
 import { store, persistor } from './src/store';
 import { lightTheme, darkTheme, navigationTheme } from './src/config/theme.config';
-import AppNavigator from './src/navigation/AppNavigator';
+import AppNavigator, { linking } from './src/navigation/AppNavigator';
+import { navigationRef, isReadyRef } from './src/navigation/NavigationService';
 import i18n from './src/i18n';
 
 // Import des utilitaires
@@ -173,7 +174,7 @@ const App: React.FC = () => {
       // Configuration spécifique à Android
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
-          name: 'Default',
+          name: 'Notifications générales',
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: colors.primary,
@@ -233,32 +234,44 @@ const App: React.FC = () => {
             <PaperProvider theme={lightTheme}>
               <SafeAreaProvider>
                 <I18nextProvider i18n={i18n}>
-                  <NavigationContainer theme={navigationTheme}>
+                  <NavigationContainer
+                    ref={navigationRef}
+                    theme={navigationTheme}
+                    linking={linking}
+                    onReady={() => {
+                      isReadyRef.current = true;
+                    }}
+                    onStateChange={() => {
+                      if (__DEV__) {
+                        console.log(`[Navigation] Écran: ${navigationRef.getCurrentRoute()?.name}`);
+                      }
+                    }}
+                  >
                     <StatusBar
                       barStyle="dark-content"
                       backgroundColor={colors.background}
                       translucent={false}
                     />
                     <AppNavigator />
-                    <FlashMessage
-                      position="top"
-                      floating
-                      duration={3000}
-                      icon="auto"
-                      style={{
-                        borderRadius: 12,
-                        marginHorizontal: 16,
-                        marginTop: Platform.OS === 'ios' ? 50 : 40,
-                      }}
-                      titleStyle={{
-                        fontSize: typography.fontSize.md,
-                        fontWeight: typography.fontWeight.bold,
-                      }}
-                      textStyle={{
-                        fontSize: typography.fontSize.sm,
-                      }}
-                    />
                   </NavigationContainer>
+                  <FlashMessage
+                    position="top"
+                    floating
+                    duration={3000}
+                    icon="auto"
+                    style={{
+                      borderRadius: 12,
+                      marginHorizontal: 16,
+                      marginTop: Platform.OS === 'ios' ? 50 : 40,
+                    }}
+                    titleStyle={{
+                      fontSize: typography.fontSize.md,
+                      fontWeight: typography.fontWeight.bold,
+                    }}
+                    textStyle={{
+                      fontSize: typography.fontSize.sm,
+                    }}
+                  />
                 </I18nextProvider>
               </SafeAreaProvider>
             </PaperProvider>

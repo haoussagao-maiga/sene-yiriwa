@@ -606,7 +606,7 @@ export default {
   copy: 'Kopi',
   
   /** Coller */
-  paste: 'Paste',
+  paste: 'Da',
   
   /** Rechercher */
   search: 'Ninyini',

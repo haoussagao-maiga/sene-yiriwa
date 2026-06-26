@@ -24,15 +24,17 @@ const OnboardingSlider: React.FC<{
   onFinish?: () => void;
   onSkip?: () => void;
   showSkipButton?: boolean;
-}> = ({ onFinish, onSkip }) => {
+  startLabel: string;
+  skipLabel: string;
+}> = ({ onFinish, onSkip, startLabel, skipLabel }) => {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       {/* Minimal placeholder for onboarding slides */}
       <TouchableOpacity onPress={onFinish} style={{ padding: 12, backgroundColor: colors.primary, borderRadius: 8 }}>
-        <Text style={{ color: colors.white }}>Démarrer</Text>
+        <Text style={{ color: colors.white }}>{startLabel}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={onSkip} style={{ marginTop: 12 }}>
-        <Text style={{ color: colors.primary }}>Passer</Text>
+        <Text style={{ color: colors.primary }}>{skipLabel}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -62,6 +64,8 @@ const OnboardingScreen: React.FC<any> = ({ navigation }: any) => {
         onFinish={handleFinish}
         onSkip={handleSkip}
         showSkipButton
+        startLabel={t('start')}
+        skipLabel={t('skip')}
       />
     </View>
   );

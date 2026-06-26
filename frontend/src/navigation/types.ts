@@ -24,6 +24,8 @@ export type RootStackParamList = {
   Auth: undefined;
   /** Stack principal (après connexion) */
   App: undefined;
+  /** Stack administrateur */
+  Admin: undefined;
 };
 
 /**
@@ -104,6 +106,37 @@ export type TabParamList = {
   
   /** Écran du profil */
   Profile: undefined;
+};
+
+/**
+ * Paramètres du stack administrateur
+ */
+export type AdminStackParamList = {
+  /** Navigation par onglets admin */
+  AdminTabs: undefined;
+  
+  /** Détails d'un utilisateur */
+  UserDetail: { userId: string };
+  
+  /** Détails d'un contenu */
+  ContentDetail: { contentId: string; contentType: 'conseil' | 'technique' };
+};
+
+/**
+ * Paramètres de la navigation par onglets admin
+ */
+export type AdminTabParamList = {
+  /** Écran dashboard admin */
+  Dashboard: undefined;
+  
+  /** Écran gestion utilisateurs */
+  Users: undefined;
+  
+  /** Écran gestion contenu */
+  Content: undefined;
+  
+  /** Écran paramètres admin */
+  Settings: undefined;
 };
 
 // ============================================

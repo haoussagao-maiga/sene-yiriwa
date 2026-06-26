@@ -1,4 +1,3 @@
-
 {
   "expo": {
     "name": "Sènè Yiriwa",
@@ -10,7 +9,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2E7D32"
+      "backgroundColor": "#1B5E20"
     },
     "plugins": [
       [
@@ -21,12 +20,6 @@
             "newArchEnabled": false
           }
         }
-      ],
-      [
-        "react-native-maps",
-        {
-          "googleMapsApiKey": ""
-        }
       ]
     ],
     "assetBundlePatterns": [
@@ -36,7 +29,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.seneyiriwa.app",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
