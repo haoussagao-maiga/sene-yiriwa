@@ -5,7 +5,8 @@
 
 export const API_CONFIG = {
   // URLs
-  BASE_URL: 'https://api.seneyiriwa.com/api',
+  
+  BASE_URL: __DEV__ ? 'http://192.168.118.1:3000' : 'https://api.seneyiriwa.com',
   
   // Timeouts
   TIMEOUT: 30000,           // 30 secondes
@@ -23,71 +24,52 @@ export const API_CONFIG = {
   // Endpoints
   ENDPOINTS: {
     AUTH: {
-      LOGIN: '/auth/login',
-      REGISTER: '/auth/register',
-      REFRESH_TOKEN: '/auth/refresh-token',
-      LOGOUT: '/auth/logout',
-      FORGOT_PASSWORD: '/auth/forgot-password',
-      RESET_PASSWORD: '/auth/reset-password',
-      CHANGE_PASSWORD: '/auth/change-password',
-      VERIFY_EMAIL: '/auth/verify-email',
-      RESEND_VERIFICATION: '/auth/resend-verification',
-      CURRENT_USER: '/auth/me',
-      UPDATE_PROFILE: '/auth/me',
-      DELETE_ACCOUNT: '/auth/me',
+      LOGIN: '/api/auth/login',
+      REGISTER: '/api/auth/register',
+      PROFILE: '/api/auth/profile',
+      ADMIN: '/api/auth/admin',
     },
     USER: {
-      PROFILE: '/users/me',
-      UPDATE_PROFILE: '/users/me',
-      CHANGE_PASSWORD: '/users/change-password',
-      DELETE_ACCOUNT: '/users/me',
+      PROFILE: '/api/profil',
+      UPDATE_PROFILE: '/api/profil',
     },
     METEO: {
-      CURRENT: '/meteo/current',
-      FORECAST: '/meteo/forecast',
-      SIMPLE_FORECAST: '/meteo/forecast/simple',
-      HOURLY: '/meteo/forecast/hourly',
-      ALERTS: '/meteo/alerts',
-      ALERTS_BY_CULTURE: '/meteo/alerts/culture',
-      INDICES: '/meteo/indices',
-      HISTORICAL: '/meteo/historical',
-      NORMALS: '/meteo/normales',
-      RECOMMENDATIONS: '/meteo/recommendations',
-      SATELLITE: '/meteo/satellite',
-      RADAR: '/meteo/radar',
+      CURRENT: '/api/meteo',
     },
     CONSEILS: {
-      LIST: '/conseils',
-      DETAIL: (id: string) => `/conseils/${id}`,
-      BY_CULTURE: '/conseils/culture',
-      SEARCH: '/conseils/search',
-      PERSONNALISES: '/conseils/personnalises',
-      URGENTS: '/conseils/urgents',
-      FAVORIS: '/conseils/favoris',
-      CALENDRIER_CULTURAL: '/conseils/calendrier',
-      ALERTES: '/conseils/alertes',
-      STATS: '/conseils/stats',
-      RECOMMANDATIONS: '/conseils/recommandations',
+      LIST: '/api/conseils',
+    },
+    VULGARISATION: {
+      LIST: '/api/vulgarisation',
+      ALL: '/api/vulgarisation/all',
     },
     TECHNIQUES: {
-      LIST: '/techniques',
-      DETAIL: (id: string) => `/techniques/${id}`,
-      CATEGORIES: '/techniques/categories',
-      FAVORITES: '/techniques/favorites',
-      FAVORIS: '/techniques/favorites',
-      STATS: '/techniques/stats',
-      CERTIFICATS: '/techniques/certificats',
-      RECOMMANDEES: '/techniques/recommandees',
-      AVIS: '/techniques/avis',
-      SEARCH: '/techniques/search',
-      BY_CATEGORIE: (categorie: string) => `/techniques/categorie/${categorie}`,
-      BY_CULTURE: (culture: string) => `/techniques/culture/${culture}`,
+      LIST: '/api/vulgarisation',
+      ALL: '/api/vulgarisation/all',
+    },
+    AGRICULTEUR: {
+      CULTURES_DISPONIBLES: '/api/agriculteur/cultures/disponibles',
+      CULTURES: '/api/agriculteur/cultures',
+      CHAMPS: '/api/agriculteur/champs',
+    },
+    ALERTE: {
+      LIST: '/api/alerte',
+      ALL: '/api/alerte/all',
+    },
+    CALENDRIER: {
+      LIST: '/api/calendrier',
+      ALL: '/api/calendrier/all',
     },
     NOTIFICATIONS: {
-      LIST: '/notifications',
-      MARK_READ: (id: string) => `/notifications/${id}/read`,
-      MARK_ALL_READ: '/notifications/read-all',
-      PREFERENCES: '/notifications/preferences',
+      LIST: '/api/notifications',
+      MARK_READ: '/api/notifications',
+    },
+    STATISTIQUE: {
+      STATS_GENERALES: '/api/statistique/stats-generales',
+      STATS_AGRICOLES: '/api/statistique/stats-agricoles',
+    },
+    ADMIN: {
+      PROMOUVOIR_EXPERT: '/api/admin/promouvoir-expert',
     },
   },
   
